@@ -4,7 +4,7 @@ This is the repository that contains source code for the [GMD website](https://k
 
 If you find GMD useful for your work please cite:
 ```
-@article{karunratanakul2022harp,
+@article{karunratanakul2023gmd,
   author    = {Karunratanakul, Korrawe and Preechakul, Konpat and Suwajanakorn, Supasorn and Tang, Siyu},
   title     = {GMD: Controllable Human Motion Synthesis via Guided Diffusion Models},
   journal   = {arXiv preprint arXiv:},
