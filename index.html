@@ -15,9 +15,9 @@
   <meta charset="utf-8">
   <meta name="description"
         content="GMD: Guided Diffusion Models">
-  <meta name="keywords" content="HARP, hand avatar">
+  <meta name="keywords" content="GMD, guided motion diffusion, human motion, motion synthesis">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>GMD: Guided Diffusion Models</title>
+  <title>GMD: Guided Motion Diffusion Models</title>
 
 
   <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
@@ -91,9 +91,9 @@
             <span class="author-block">
               <a href="https://vlg.inf.ethz.ch/team/Korrawe-Karunratanakul.html">Korrawe Karunratanakul</a><sup>1</sup>,</span> 
             <span class="author-block">
-              <a href="">Konpat Preechakul</a><sup>2</sup>,</span>
+              <a href="https://konpat.me/">Konpat Preechakul</a><sup>2</sup>,</span>
             <span class="author-block">
-              <a href="">Supasorn Suwajanakorn</a><sup>2</sup>,
+              <a href="https://www.supasorn.com/">Supasorn Suwajanakorn</a><sup>2</sup>,
             </span>
             <span class="author-block">
               <a href="https://vlg.inf.ethz.ch/team/Prof-Dr-Siyu-Tang.html">Siyu Tang</a><sup>1</sup>
@@ -105,6 +105,8 @@
             <span class="author-block"><sup>2</sup>VISTEC, Thailand</span>
             <!-- <span class="author-block"><sup>1</sup>ETH Zurich</span> -->
           </div>
+
+          <h3 class="is-5 conference">ICCV 2023</h3>
 
           <div class="column has-text-centered">
             <div class="publication-links">
@@ -138,15 +140,15 @@
                 </a>
               </span>
               <!-- Code Link. -->
-              <!-- <span class="link-block">
+              <span class="link-block">
                 <a href="https://github.com/"
                    class="external-link button is-normal is-rounded is-dark">
                   <span class="icon">
                       <i class="fab fa-github"></i>
                   </span>
-                  <span>Code</span>
+                  <span>Code (coming soon)</span>
                   </a>
-              </span> -->
+              </span>
               <!-- Dataset Link. -->
               <!-- <span class="link-block">
                 <a href="https://github.com/1"
@@ -177,7 +179,7 @@
                 type="video/mp4">
       </video> -->
       <h2 class="subtitle has-text-centered">
-        GMD allows motion generation with additional spatial conditioning.
+        <b> Guided Motion Diffusion (GMD) </b> model can synthesize realistic human motion according to a text prompt, a reference trajectory, and key locations, as well as avoiding hitting your toe on giant X-mark circles that someone dropped on the floor. No need to retrain diffusion models for each of these tasks!
       </h2>
     </div>
   </div>
@@ -227,31 +229,87 @@
 
 <section class="section">
   <div class="container is-max-desktop">
-      <!-- Overview -->
+    <!-- Summary -->
     <div class="columns is-centered has-text-centered">
       <div class="column is-full-width">
-        <h2 class="title is-3">Overview  (To be updated)</h2>
-        <!-- <div class="content has-text-justified">
-          <p>
-            Given a short monocular RGB video of a hand, our hand avatar creation method includes two steps:
-            (1) coarse hand pose and shape estimation for initialization;
-            (2) an optimization framework to reconstruct the personalized hand geometry and appearance.
-            The hand geometry is first rasterized and combined with a normal map. Then, the shader combines 
-            the albedo, geometry, and lighting to render the personalized hand. 
-            The optimization solves the hand and scene parameters using only the input images.
+        <h2 class="title is-3">Summary</h2>
+        <div class="content has-text-justified">
+          <h4>Problems</h4>
+          <ul>
+            <li>To make the synthesized motions useful, we need a way to ground them in the 3D world. However, existing works synthesize motion based on text alone without control over where the character is heading to</li>
+            <li>There are two main issues when trying to condition the motion diffusion model on a given spatial objective that makes the model likely to ignore the conditioning: the <b>sparseness of location in the motion representation</b> and <b>sparse guidance signals</b></li>
+            <li>The sparseness of the guidance signals means the guidance will likely be ignored during the backward step. <b>Why?</b> Because it is easier to change a few values to make them coherent with the rest than the other way around </li>
+            <li><b>Sparseness in the representation:</b> In each frame, the global location only consists of 4 values out of 263 values in the motion representation. The model is likely to change the global location to match the local pose than vice-versa due to the small importance of the global location</li>
+            <li><b>Sparse guidance signals: </b>Additionally, the spatial guidance is also sparse as they are only defined on a few keyframes</li>
+          </ul>
+          <figure  class="content has-text-centered">
+            <img src="./static/images/guidance_problem.jpg"
+                   class="column is-7 is-offset-1 has-text-centered"
+                   alt="Guidance problem."
+                   />
+          </figure >
+          <h4>Our Solutions</h4>
+          <ul>
+            <li><b>Emphasis projection</b> allows us to manipulate feature importance <it>before training</it>. We give more emphasis to the global locations which are underrepresented in the motion vectors, making it harder for the model to ignore them.</li>
+            <li><b>Dense gradient propagation</b> exploits the nature of denoising functions to propagate gradient at a specific frame to its neighboring frames, making the gradient from guidance dense in the frame dimension</li>
+          </ul>
           </p>
         </div>
-        <div class="content has-text-centered">
-          <img src="./static/images/overview.jpg"
-                 class="column is-centered has-text-centered"
-                 alt="Method overview."/>
-        </div> -->
-        
         
       </div>
     </div>
 
+    <!-- Pipeline -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Our Pipeline</h2>
+        <div class="content has-text-justified">
+          <p>
+            In GMD, we tackle the problem of spatially conditioned motion generation using a two-staged pipeline (a) The optional first stage generates a trajectory given spatial conditioning. Then, the second stage synthesizes motions accroding to the trajectory. Our main contributions are (b) <b>Emphasis projection</b>, for better trajectory-motion coherence, and (c) <b>Dense signal propagation</b>, for a more controllable generation even under sparse guidance signal.
+          </p>
+        </div>
+        <figure  class="content has-text-centered">
+          <img src="./static/images/pipeline.jpg"
+                 class="column is-8 is-offset-2 has-text-centered"
+                 alt="Method pipeline."
+                 />
+        </figure >
+        
+        <!-- Emphasis projection -->
+        <h3 class="title is-4 has-text-left">Emphasis projection</h3>
+        <div class="content has-text-justified">
+          <p>
+            The most straightforward way of forcing the model to put more importance on the trajectory is to simply scale up its loss weight compared to other parts during training. Nevertheless, we found that loss manipulation is ineffective in this setting and also makes the training less stable.
+            To achieve the same effect, we can scale up the value of the trajectory in the motion representation (multiply the values by c). But, doing so means the variance of each value in the motion vector will not be the same, which most diffusion models assume to be the case.
+            The emphasis projection is then the next most straightforward solution for adjusting trajectory importance while taking these problems into account. It can be described as follows:
+            <ol>
+            <li>Scale up the trajectory values by a factor c.</li>
+            <li>Randomly project the motion vector into a new vector using a fixed random matrix. Do the same for every frame.</li>
+            <li>Normalize the new motion vector such that it has a unit variance again.</li>
+            </ol>
+            The final vectors are used as motion representation instead of the original representation.</li>
+          </p>
+        </div>
+        <!--/ Emphasis projection -->
 
+        <!-- Dense signal propagation -->
+        <h3 class="title is-4 has-text-left">Dense signal propagation</h3>
+        <div class="content has-text-justified">
+          <p>
+            Our goal is to convert the sparse guidance signals that are defined on some keyframes to denser signals during denoising.
+            As the spatial guidance can only be defined on the clean motion (X<sub>0</sub>) but we need gradients w.r.t. the noisy motion (X<sub>t</sub>) to guide the motion at the denoising step t, we observe that
+            <ol>
+              <li>We need a function that can propagate gradients that are defined on some frames of X<sub>0</sub> to their surrounding frames but with respect to X<sub>t</sub> (not X<sub>0</sub> !)</li>
+              <li>By definition, any denoising function (f: x<sub>noisy</sub> → x<sub>clean</sub>) that produces a clean motion from noisy motion has this dense gradient propagation property because it needs to look at the context to refine any given frame (let x<sub>noisy</sub>=x<sub>t</sub> and x<sub>clean</sub>=x<sub>0</sub>).</li>
+              <li>This coincides with the definition of the diffusion model x<sub>0,θ</sub> which predicts the clean motion X<sub>0</sub> from the noisy motion X<sub>t</sub>. </li>
+            </ol>
+            As such, we can use the diffusion model itself to efficiently compute the gradients. In practice, this translates to using autodiff to compute the guidance gradients w.r.t. the input of the diffusion model.
+          </p>
+        </div>
+        <!--/ Dense signal propagation -->
+      </div>
+    </div>
+    
     <!-- <div class="columns is-centered">
       <div class="column is-full-width">
         <h2 class="title is-3">Hand Avatar</h2>
@@ -297,7 +355,7 @@
     <pre><code>@article{karunratanakul2023gmd,
   author    = {Karunratanakul, Korrawe and Preechakul, Konpat and Suwajanakorn, Supasorn and Tang, Siyu},
   title     = {GMD: Controllable Human Motion Synthesis via Guided Diffusion Models},
-  journal   = {arXiv preprint arXiv:},
+  journal   = {arXiv preprint arXiv:2305.12577},
   year      = {2023},
 }</code></pre>
   </div>
