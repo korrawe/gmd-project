@@ -7,7 +7,7 @@ If you find GMD useful for your work please cite:
 @article{karunratanakul2023gmd,
   author    = {Karunratanakul, Korrawe and Preechakul, Konpat and Suwajanakorn, Supasorn and Tang, Siyu},
   title     = {GMD: Controllable Human Motion Synthesis via Guided Diffusion Models},
-  journal   = {arXiv preprint arXiv:},
+  journal   = {arXiv preprint arXiv:2305.12577},
   year      = {2023},
 }
 ```
