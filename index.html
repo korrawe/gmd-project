@@ -254,6 +254,12 @@
             <li><b>Emphasis projection</b> allows us to manipulate feature importance <it>before training</it>. We give more emphasis to the global locations which are underrepresented in the motion vectors, making it harder for the model to ignore them.</li>
             <li><b>Dense gradient propagation</b> exploits the nature of denoising functions to propagate gradient at a specific frame to its neighboring frames, making the gradient from guidance dense in the frame dimension</li>
           </ul>
+          <figure  class="content has-text-centered">
+            <img src="./static/images/method_overview.jpg"
+                   class="column is-8 is-offset-1 has-text-centered"
+                   alt="Guidance problem."
+                   />
+          </figure >
           </p>
         </div>
         
@@ -307,6 +313,17 @@
             As such, we can use the diffusion model itself to efficiently compute the gradients. In practice, this translates to using autodiff to compute the guidance gradients w.r.t. the input of the diffusion model.
           </p>
         </div>
+        <figure  class="content has-text-centered">
+          <img src="./static/images/dense_signal.jpg"
+                 class="column is-6 is-offset-4 has-text-centered"
+                 alt="Guidance problem."
+                 />
+        </figure >
+        <!-- <h4 class="subtitle has-text-centered"> -->
+        <p>
+          <b>Generated motion trajectories</b>, conditioned on target locations at given keyframes. Without dense signal propagation, the model ignores the target conditions
+        </p>
+          <!-- </h4> -->
         <!--/ Dense signal propagation -->
       </div>
     </div>
